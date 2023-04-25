@@ -1,4 +1,4 @@
-const timezoneTasks = [
+const timezonelist = [
   { timezone: 'Pacific/Midway', task: () => console.log('Task executed in Midway Island!') },
   { timezone: 'Pacific/Honolulu', task: () => console.log('Task executed in Honolulu!') },
   { timezone: 'America/Anchorage', task: () => console.log('Task executed in Anchorage!') },
@@ -21,4 +21,4 @@ const timezoneTasks = [
   { timezone: 'Pacific/Auckland', task: () => console.log('Task executed in Auckland!') },
 ];
 
-export default timezonelist;
+module.exports = timezonelist;
