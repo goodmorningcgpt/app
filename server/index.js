@@ -13,8 +13,8 @@ const queries = require('./sqlcontroller.js');
 dotenv.config();
 
 // Twilio account credentials
-const accountSid = process.env.ACCOUNT_SID;
-const authToken = process.env.AUTH_TOKEN;
+const accountSid = "";
+const authToken = "";
 const client = twilio(accountSid, authToken);
 //SQL credentials
 const SQL_URI = process.env.SQL_URI;
@@ -22,6 +22,60 @@ const SQL_URI = process.env.SQL_URI;
 const pool = new Pool({
   connectionString: SQL_URI,
 });
+
+//open ai configuration
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+  organization: "org-dmrFp1Qvb5jsxzyHLMGXyHQX",
+  apiKey: "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",
+});
+
+const openai = new OpenAIApi(configuration);
+
+async function generateGPTResponse(message) {
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [
+      { 
+        role: "system", 
+        content: "You are an assisant for our sms-based application. You will be talking to our users over sms. Our application's purpose is to send motivating text messages at 7:00am for users. Please keep the responses under 100 characters. If you get a message that you don't understand, tell the user that they can begin receiving messages from our service by texting 'morning' or stop receiving messages by texting 'pause'"
+      },
+      { 
+        role: "user", 
+        content: message
+      }
+    ]
+  });
+  return completion;
+}
+
+
+async function handleResponse(number, req, res, message) {
+  const response = await generateGPTResponse(message);
+  // console.log(response);
+  console.log(response.data.choices[0].message);
+
+  const parsedResponse = response.data.choices[0].message.content
+
+  client.messages
+    .create({
+      body: parsedResponse,
+      from: "+16319003876",
+      to: number,
+    })
+    .then(() => {
+      res.send("Message sent!");
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send("Error sending message");
+    });
+}
+
+// test
+// handleResponse();
+
 
 // Parse incoming request body as text
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -56,8 +110,10 @@ app.post("/sms", (req, res) => {
     //sql query to remove user
     removeUser(From, req, res);
   } else {
+    handleResponse(From, req, res, Body);
     //sql query to send options to a user
-    sendOptions(From, req, res);
+    // sendOptions(From, req, res);
+    // console.log("received message");
   }
 });
 
