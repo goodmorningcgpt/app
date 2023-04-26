@@ -7,7 +7,9 @@ const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const app = express();
 const port = 3000;
-const cron = require("node-cron");
+const cron = require('node-cron');
+const queries = require('./sqlcontroller.js');
+
 dotenv.config();
 
 // Twilio account credentials
